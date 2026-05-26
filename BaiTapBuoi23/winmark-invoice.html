@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Hóa đơn</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            padding: 30px;
+        }
+
+        .invoice {
+            width: 900px;
+            margin: auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+
+        .brand h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .brand p {
+            color: gray;
+        }
+
+        .invoice-info {
+            text-align: right;
+        }
+
+        .invoice-info h3 {
+            color: green;
+            margin-bottom: 10px;
+        }
+
+        .section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+
+        .box {
+            width: 48%;
+        }
+
+        .box h4 {
+            margin-bottom: 15px;
+            color: gray;
+        }
+
+        .box p {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+
+        table th {
+            background: #f0f0f0;
+            padding: 12px;
+            text-align: left;
+        }
+
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .promotion {
+            width: 55%;
+            background: #eefaf3;
+            border: 1px solid #bde5c8;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .promotion h4 {
+            color: green;
+            margin-bottom: 10px;
+        }
+
+        .summary {
+            width: 35%;
+        }
+
+        .summary p {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+
+        .total {
+            font-size: 28px;
+            font-weight: bold;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+
+<div class="invoice" id="invoice"></div>
+
+<script>
+    const invoiceData = {
+        meta: {
+            invoiceNo: "WM-20260521-0001",
+            saleDate: "2026/05/21",
+            currency: "VND",
+            paymentMethod: "Cash"
+        },
+
+        seller: {
+            name: "WinMark 2 Hai Ba Trung",
+            address: "2 Ba Trung - HN",
+            phone: "012345678",
+            representative: "Đại diện WinMark"
+        },
+
+        customer: {
+            name: "Nguyen Van A",
+            age: 20,
+            address: "Ha Dong Ha Noi"
+        },
+
+        items: [
+            {
+                no: 1,
+                name: "Ao Thun",
+                size: "XL",
+                quantity: 1,
+                price: 200000
+            },
+            {
+                no: 2,
+                name: "Ao Thun",
+                size: "XL",
+                quantity: 1,
+                price: 200000
+            }
+        ],
+
+        promotion: {
+            description: "Khuyen mai 50% chi KH than thiet",
+            discountPercent: 50
+        }
+    };
+    let subtotal = 0;
+    for (const item of invoiceData.items) {
+        subtotal += item.quantity * item.price;
+    }
+
+    const discount =
+        subtotal * invoiceData.promotion.discountPercent / 100;
+
+    const total = subtotal - discount;
+
+    // RENDER ITEMS
+    let itemsHTML = "";
+
+    for (const item of invoiceData.items) {
+        const amount = item.quantity * item.price;
+
+        itemsHTML += `
+        <tr>
+          <td>${item.no}</td>
+          <td>${item.name}</td>
+          <td>${item.size}</td>
+          <td>${item.quantity}</td>
+          <td>${item.price.toLocaleString()} đ</td>
+          <td>${amount.toLocaleString()} đ</td>
+        </tr>
+      `;
+    }
+
+    const html = `
+      <div class="top">
+        <div class="brand">
+          <h1>${invoiceData.seller.name}</h1>
+          <p>Cung cấp sản phẩm thời trang cao cấp</p>
+        </div>
+
+        <div class="invoice-info">
+          <h3>HÓA ĐƠN BÁN LẺ</h3>
+          <p><strong>Mã số:</strong> ${invoiceData.meta.invoiceNo}</p>
+          <p>Ngày bán: ${invoiceData.meta.saleDate}</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="box">
+          <h4>ĐƠN VỊ BÁN HÀNG</h4>
+          <p><strong>${invoiceData.seller.name}</strong></p>
+          <p>${invoiceData.seller.address}</p>
+          <p>${invoiceData.seller.phone}</p>
+        </div>
+
+        <div class="box">
+          <h4>KHÁCH HÀNG</h4>
+          <p><strong>${invoiceData.customer.name}</strong></p>
+          <p>Tuổi: ${invoiceData.customer.age}</p>
+          <p>${invoiceData.customer.address}</p>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>TÊN SẢN PHẨM</th>
+            <th>SIZE</th>
+            <th>SL</th>
+            <th>ĐƠN GIÁ</th>
+            <th>THÀNH TIỀN</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          ${itemsHTML}
+        </tbody>
+      </table>
+
+      <div class="bottom">
+        <div class="promotion">
+          <h4>KHUYẾN MÃI / TRỢ GIÁ</h4>
+          <p>${invoiceData.promotion.description}</p>
+        </div>
+
+        <div class="summary">
+          <p>
+            <span>Cộng tiền hàng:</span>
+            <span>${subtotal.toLocaleString()} đ</span>
+          </p>
+
+          <p>
+            <span>Khấu trừ giảm giá:</span>
+            <span>-${discount.toLocaleString()} đ</span>
+          </p>
+
+          <p class="total">
+            <span>Tổng thanh toán:</span>
+            <span>${total.toLocaleString()} đ</span>
+          </p>
+        </div>
+      </div>
+    `;
+
+    document.getElementById("invoice").innerHTML = html;
+</script>
+
+</body>
+</html>
