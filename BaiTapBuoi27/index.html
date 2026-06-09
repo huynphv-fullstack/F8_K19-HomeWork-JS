@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Management Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            /* Color Palette (Slate & Blue) */
+            --bg-body: #f1f5f9;
+            --bg-panel: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --danger: #ef4444;
+            --danger-bg: #fee2e2;
+            --success: #10b981;
+            --success-bg: #d1fae5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- TRICK: CHECKBOX HACK --- */
+        #popup-toggle {
+            display: none;
+        }
+
+        /* Navbar Header */
+        .navbar {
+            background-color: var(--bg-panel);
+            border-bottom: 1px solid var(--border-color);
+            height: 64px;
+            display: flex;
+            align-items: center;
+            padding: 0 32px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .navbar-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar-brand span {
+            color: var(--primary);
+        }
+
+        /* Main Content Container */
+        .main-container {
+            flex: 1;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Panel (Card) */
+        .panel {
+            background-color: var(--bg-panel);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #fff;
+        }
+
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-input {
+            width: 300px;
+            padding: 10px 16px 10px 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+            background-color: var(--bg-body);
+        }
+
+        .search-input:focus {
+            background-color: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .btn-add {
+            background-color: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-add:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 16px 32px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            background-color: #f8fafc;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* Cột Customer với Tên và Email */
+        .customer-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .customer-name {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .customer-email {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Badge Trạng thái */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-active {
+            background-color: var(--success-bg);
+            color: var(--success);
+        }
+
+        .actions {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .action-icon {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .action-icon:hover {
+            background-color: var(--border-color);
+            color: var(--text-main);
+        }
+
+        .action-icon.delete:hover {
+            background-color: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .popup-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: default;
+        }
+
+        .popup-content {
+            position: relative;
+            width: 600px; /* Mở rộng form một chút */
+            max-width: 90%;
+            z-index: 1001;
+            transform: scale(0.95) translateY(15px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .popup-body {
+            padding: 32px;
+        }
+
+        /* Form Grid System */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+            background-color: var(--bg-body);
+        }
+
+        .form-input:focus {
+            background-color: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .popup-footer {
+            padding: 20px 32px;
+            background-color: #f8fafc;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-cancel {
+            background-color: #ffffff;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-cancel:hover {
+            background-color: #f1f5f9;
+        }
+
+        .btn-save {
+            background-color: var(--text-main);
+            color: #ffffff;
+        }
+
+        .btn-save:hover {
+            background-color: #000000;
+        }
+
+        #popup-toggle:checked ~ .popup-overlay {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #popup-toggle:checked ~ .popup-overlay .popup-content {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+<!-- INPUT ẨN: Nắm giữ trạng thái Popup -->
+<input type="checkbox" id="popup-toggle">
+
+<nav class="navbar">
+    <div class="navbar-brand">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary)"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        CRM<span>System</span>
+    </div>
+</nav>
+
+<main class="main-container">
+    <div class="panel">
+
+        <div class="panel-header">
+            <h2 class="panel-title">Customers</h2>
+            <div class="toolbar">
+                <div class="search-wrapper">
+                    <span class="search-icon">⚲</span>
+                    <input type="text" class="search-input" placeholder="Search customers...">
+                </div>
+                <!-- Nút mở Popup -->
+                <label for="popup-toggle" class="btn btn-add">
+                    <span>+</span> Add New
+                </label>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th style="width: 80px;">ID</th>
+                    <th>Customer</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th>Tax ID</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+                </thead>
+                <tbody id="customerTable">
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</main>
+
+<div class="popup-overlay">
+    <!-- Nền mờ, click để đóng -->
+    <label for="popup-toggle" class="popup-backdrop"></label>
+
+    <div class="panel popup-content">
+        <div class="panel-header" style="border-bottom: none; padding-bottom: 0;">
+            <h2 class="panel-title">Customer Details</h2>
+        </div>
+
+        <div class="popup-body">
+            <div class="form-grid">
+                <!-- Name -->
+                <div class="form-group full-width">
+                    <label class="form-label">Company Name *</label>
+                    <input type="text" id="companyName" class="form-input" placeholder="e.g. Cty TNHH F8">
+                </div>
+
+                <!-- Email & Phone -->
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" id="email" class="form-input" placeholder="contact@example.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" id="phone" class="form-input" placeholder="0987 654 321">
+                </div>
+
+                <!-- Tax -->
+                <div class="form-group full-width">
+                    <label class="form-label">Tax ID (Mã số thuế)</label>
+                    <input type="text" id="taxId" class="form-input" placeholder="018381123412">
+                </div>
+
+                <!-- Address (Đã sửa lỗi chính tả) -->
+                <div class="form-group full-width">
+                    <label class="form-label">Physical Address</label>
+                    <input type="text" id="address" class="form-input" placeholder="Enter full address...">
+                </div>
+            </div>
+        </div>
+
+        <div class="popup-footer">
+            <!-- Nút đóng form -->
+            <label for="popup-toggle" class="btn btn-cancel">Cancel</label>
+            <button type="button" id="saveBtn" class="btn btn-save">Save Customer</button>
+        </div>
+    </div>
+</div>
+<script>
+    let customers = [
+        {
+            id: "001",
+            name: "Cty TNHH F8",
+            email: "contact@f8.edu.vn",
+            phone: "0987654321",
+            address: "Hà Đông, Hà Nội",
+            taxId: "018381123412"
+        },
+        {
+            id: "003",
+            name: "Cty Cổ Phần F9",
+            email: "info@f9.vn",
+            phone: "0912345678",
+            address: "Cầu Giấy, Hà Nội",
+            taxId: "018381123413"
+        },
+        {
+            id: "005",
+            name: "Global Tech LLC",
+            email: "hello@globaltech.com",
+            phone: "0243111222",
+            address: "Quận 1, TP.HCM",
+            taxId: "018381123414"
+        }
+    ];
+
+    let editIndex = -1;
+
+    const customerTable = document.getElementById("customerTable");
+    const popupToggle = document.getElementById("popup-toggle");
+
+    const companyName = document.getElementById("companyName");
+    const email = document.getElementById("email");
+    const phone = document.getElementById("phone");
+    const taxId = document.getElementById("taxId");
+    const address = document.getElementById("address");
+
+    function renderTable(list = customers) {
+        customerTable.innerHTML = "";
+
+        list.forEach((customer, index) => {
+            customerTable.innerHTML += `
+        <tr>
+            <td>#${customer.id}</td>
+
+            <td>
+                <div class="customer-info">
+                    <span class="customer-name">${customer.name}</span>
+                    <span class="customer-email">${customer.email}</span>
+                </div>
+            </td>
+
+            <td>${customer.phone}</td>
+            <td>${customer.address}</td>
+            <td>${customer.taxId}</td>
+
+            <td>
+                <span class="badge badge-active">
+                    Active
+                </span>
+            </td>
+
+            <td class="actions">
+                <span class="action-icon"
+                      onclick="editCustomer(${index})">
+                    ✎
+                </span>
+
+                <span class="action-icon delete"
+                      onclick="deleteCustomer(${index})">
+                    🗑
+                </span>
+            </td>
+        </tr>
+        `;
+        });
+    }
+
+    function clearForm() {
+        companyName.value = "";
+        email.value = "";
+        phone.value = "";
+        taxId.value = "";
+        address.value = "";
+
+        editIndex = -1;
+
+        document.querySelector(".panel-title").textContent = "Add Customer";
+    }
+
+    function editCustomer(index) {
+        const customer = customers[index];
+
+        companyName.value = customer.name;
+        email.value = customer.email;
+        phone.value = customer.phone;
+        taxId.value = customer.taxId;
+        address.value = customer.address;
+
+        editIndex = index;
+
+        document.querySelector(".panel-title").textContent = "Edit Customer";
+
+        popupToggle.checked = true;
+    }
+
+    function deleteCustomer(index) {
+        if(confirm("Bạn có chắc muốn xóa khách hàng này?")) {
+            customers.splice(index, 1);
+            renderTable();
+        }
+    }
+
+    function generateId() {
+        const maxId = Math.max(...customers.map(item => Number(item.id)));
+        return String(maxId + 1).padStart(3, "0");
+    }
+
+    document.getElementById("saveBtn").addEventListener("click", () => {
+
+        if (
+            companyName.value.trim() === "" ||
+            email.value.trim() === "" ||
+            phone.value.trim() === ""
+        ) {
+            alert("Vui lòng nhập đầy đủ thông tin!");
+            return;
+        }
+
+        const customer = {
+            id:
+                editIndex === -1
+                    ? generateId()
+                    : customers[editIndex].id,
+
+            name: companyName.value,
+            email: email.value,
+            phone: phone.value,
+            taxId: taxId.value,
+            address: address.value
+        };
+
+        if (editIndex === -1) {
+            customers.push(customer);
+            alert("Thêm khách hàng thành công!");
+        } else {
+            customers[editIndex] = customer;
+            alert("Cập nhật khách hàng thành công!");
+        }
+
+        renderTable();
+        clearForm();
+        popupToggle.checked = false;
+    });
+
+    document.querySelector(".btn-add").addEventListener("click", () => {
+        clearForm();
+    });
+
+    document.querySelector(".search-input").addEventListener("keyup", e => {
+
+        const keyword = e.target.value.toLowerCase();
+
+        const result = customers.filter(customer =>
+            customer.name.toLowerCase().includes(keyword) ||
+            customer.email.toLowerCase().includes(keyword)
+        );
+
+        renderTable(result);
+    });
+
+    renderTable();
+</script>
+</body>
+</html>
