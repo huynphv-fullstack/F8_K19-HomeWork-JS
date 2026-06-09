@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FakeStore</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:Arial,sans-serif;
+        }
+
+        body{
+            background:#f5f7fb;
+        }
+
+        .header{
+            height:80px;
+            background:white;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:0 40px;
+            border-bottom:1px solid #ddd;
+        }
+
+        .logo{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            font-size:32px;
+            color:#4f46e5;
+        }
+
+        .logo h2{
+            font-size:20px;
+        }
+
+        .search-box{
+            width:500px;
+            position:relative;
+        }
+
+        .search-box input{
+            width:100%;
+            height:45px;
+            border-radius:30px;
+            border:1px solid #cbd5e1;
+            padding-left:45px;
+            outline:none;
+        }
+
+        .search-box i{
+            position:absolute;
+            left:15px;
+            top:14px;
+            color:#94a3b8;
+        }
+
+        .cart-icon{
+            position:relative;
+            font-size:28px;
+            cursor:pointer;
+            color:#334155;
+        }
+
+        .cart-count{
+            position:absolute;
+            top:-10px;
+            right:-10px;
+            width:22px;
+            height:22px;
+            border-radius:50%;
+            background:red;
+            color:white;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            font-size:12px;
+        }
+
+        .container{
+            display:flex;
+            padding:30px;
+            gap:30px;
+        }
+
+        .sidebar{
+            width:260px;
+            background:white;
+            padding:25px;
+            border-radius:20px;
+            height:max-content;
+        }
+
+        .sidebar h3{
+            margin-bottom:20px;
+        }
+
+        .category{
+            padding:12px;
+            border-radius:10px;
+            margin-bottom:8px;
+            cursor:pointer;
+            display:flex;
+            justify-content:space-between;
+        }
+
+        .category:hover{
+            background:#eef2ff;
+        }
+
+        .category.active{
+            background:#e0e7ff;
+            color:#4f46e5;
+        }
+
+        .content{
+            flex:1;
+        }
+
+        .content h1{
+            margin-bottom:10px;
+        }
+
+        .product-count{
+            color:#64748b;
+            margin-bottom:30px;
+        }
+
+        .products{
+            display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+            gap:25px;
+        }
+
+        .card{
+            background:white;
+            border-radius:20px;
+            overflow:hidden;
+            box-shadow:0 2px 8px rgba(0,0,0,0.05);
+            display:flex;
+            flex-direction:column;
+        }
+
+        .image-box{
+            height:250px;
+            padding:20px;
+        }
+
+        .image-box img{
+            width:100%;
+            height:100%;
+            object-fit:contain;
+        }
+
+        .card-body{
+            padding:20px;
+            display:flex;
+            flex-direction:column;
+            flex:1;
+        }
+
+        .category-tag{
+            font-size:12px;
+            background:#f1f5f9;
+            display:inline-block;
+            padding:6px 10px;
+            border-radius:8px;
+            margin-bottom:10px;
+        }
+
+        .title{
+            font-size:16px;
+            font-weight:bold;
+            line-height:1.4;
+            margin-bottom:15px;
+
+            display:-webkit-box;
+            -webkit-line-clamp:2;
+            -webkit-box-orient:vertical;
+            overflow:hidden;
+        }
+
+        .rating{
+            color:#f59e0b;
+            margin-bottom:20px;
+        }
+
+        .bottom{
+            margin-top:auto;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        .price{
+            font-size:30px;
+            color:#4f46e5;
+            font-weight:bold;
+        }
+
+        .add-btn{
+            width:50px;
+            height:50px;
+            border:none;
+            border-radius:15px;
+            background:#111827;
+            color:white;
+            cursor:pointer;
+            font-size:20px;
+        }
+
+        .add-btn:hover{
+            background:#4f46e5;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <h2>FakeStore</h2>
+        </div>
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Tìm kiếm sản phẩm...">
+        </div>
+        <div class="cart-icon">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span class="cart-count" id="cartCount">0</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <h3>
+                <i class="fa-solid fa-filter"></i> Danh mục
+            </h3>
+            <div id="categories"></div>
+        </aside>
+        <main class="content">
+            <h1>Tất cả sản phẩm</h1>
+            <p class="product-count"> Hiển thị <span id="totalProduct">0</span> sản phẩm </p>
+            <div class="products" id="products"></div>
+        </main>
+    </div>
+
+    <script>
+        const productsContainer = document.getElementById("products");
+        const categoriesContainer = document.getElementById("categories");
+        const totalProduct = document.getElementById("totalProduct");
+        const searchInput = document.getElementById("searchInput");
+        const cartCount = document.getElementById("cartCount");
+        let allProducts = [];
+        let cart = JSON.parse(sessionStorage.getItem("cart")) || [];
+        cartCount.textContent = cart.length;
+        async function loadProducts() {
+            const response = await fetch("https://fakestoreapi.com/products");
+            const products = await response.json();
+            allProducts = products;
+            renderProducts(products);
+            renderCategories(products);
+        }
+
+        function renderProducts(products) {
+            totalProduct.textContent = products.length;
+            productsContainer.innerHTML = "";
+            products.forEach(product => {
+                const card = document.createElement("div");
+                card.className = "card";
+                card.innerHTML = `
+
+	<div class="image-box">
+		<img src="${product.image}">
+		</div>
+		<div class="card-body">
+			<span class="category-tag">
+                        ${product.category}
+                    </span>
+			<div class="title">
+                        ${product.title}
+                    </div>
+			<div class="rating">
+                        ⭐ ${product.rating.rate}
+                        (${product.rating.count})
+                    </div>
+			<div class="bottom">
+				<div class="price">
+                            $${product.price}
+                        </div>
+				<button class="add-btn">
+					<i class="fa-solid fa-cart-shopping"></i>
+				</button>
+			</div>
+		</div>
+            `;
+                card.querySelector(".add-btn").addEventListener("click", () => {
+                    cart.push(product);
+                    sessionStorage.setItem("cart", JSON.stringify(cart));
+                    cartCount.textContent = cart.length;
+                });
+                productsContainer.appendChild(card);
+            });
+        }
+
+        function renderCategories(products) {
+            const categories = [...new Set(products.map(p => p.category))];
+            categoriesContainer.innerHTML = `
+
+		<div class="category active"
+                 onclick="filterCategory('all')">
+			<span>Tất cả sản phẩm</span>
+			<span>${products.length}</span>
+		</div>
+        `;
+            categories.forEach(category => {
+                const count = products.filter(p => p.category === category).length;
+                const div = document.createElement("div");
+
+                div.className = "category";
+
+                div.innerHTML = `
+                    <span>${category}</span>
+                    <span>${count}</span>
+                `;
+                div.addEventListener("click", () => {
+                    filterCategory(category);
+                });
+
+                categoriesContainer.appendChild(div);
+            });
+        }
+
+        function filterCategory(category) {
+            document.querySelectorAll(".category").forEach(item => {
+                item.classList.remove("active");
+            });
+            event.currentTarget.classList.add("active");
+            if (category === "all") {
+                renderProducts(allProducts);
+                return;
+            }
+            const filtered = allProducts.filter(p => p.category === category);
+            renderProducts(filtered);
+        }
+        searchInput.addEventListener("input", (e) => {
+            const keyword = e.target.value.toLowerCase();
+            const filtered = allProducts.filter(product => product.title.toLowerCase().includes(keyword));
+            renderProducts(filtered);
+        });
+        loadProducts();
+    </script>
+
+</body>
+</html>
